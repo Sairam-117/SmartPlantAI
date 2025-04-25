@@ -1,4 +1,3 @@
-/* Global styles */
 body, html {
   margin: 0;
   padding: 0;
@@ -16,7 +15,8 @@ body, html {
   width: 100%;
   height: 100%;
   z-index: -1;
-  transition: 5s;
+  transition:5s;
+  
   animation-name: animate;
   animation-direction: alternate-reverse;
   animation-duration: 30s;
@@ -25,29 +25,34 @@ body, html {
   animation-play-state: running;
   animation-timing-function: ease-in-out;
 }
-
-@keyframes animate {
-  0% {
-    background-image: url('https://img.freepik.com/premium-photo/smart-home-garden-automated-watering-soil-monitoring-solid-color-background-4k-ultra-hd_964851-116692.jpg');
+@keyframes animate{
+  0%
+  {
+      background-image: url('https://img.freepik.com/premium-photo/smart-home-garden-automated-watering-soil-monitoring-solid-color-background-4k-ultra-hd_964851-116692.jpg');
   }
-  20% {
-    background-image: url('https://img.freepik.com/premium-photo/hand-planting-trees-smart-agriculture-iot-background-generative-ai_861171-2335.jpg');
+  20%
+  {
+      background-image: url('https://img.freepik.com/premium-photo/hand-planting-trees-smart-agriculture-iot-background-generative-ai_861171-2335.jpg');
   }
-  40% {
-    background-image: url('https://img.freepik.com/premium-photo/plant-growing-from-pot-with-words-sprout-bottom_432516-42826.jpg');
+  40%
+  {
+      background-image: url('https://img.freepik.com/premium-photo/plant-growing-from-pot-with-words-sprout-bottom_432516-42826.jpg');
   }
-  60% {
-    background-image: url('https://img.freepik.com/premium-photo/few-plants-row-with-water-drops_1316263-185459.jpg');
+  60%
+  {
+      background-image: url('https://img.freepik.com/premium-photo/few-plants-row-with-water-drops_1316263-185459.jpg');
   }
-  80% {
-    background-image: url('https://easy-peasy.ai/cdn-cgi/image/quality=80,format=auto,width=700/https://media.easy-peasy.ai/6e0ce631-e02a-425f-ad70-637901bc2c6d/f8cbe1d0-339c-4bfa-8a1c-23a240d94a39.png');
+  80%
+  {
+      background-image: url('https://easy-peasy.ai/cdn-cgi/image/quality=80,format=auto,width=700/https://media.easy-peasy.ai/6e0ce631-e02a-425f-ad70-637901bc2c6d/f8cbe1d0-339c-4bfa-8a1c-23a240d94a39.png');
   }
-  100% {
-    background-image: url('https://sageuniversity.edu.in/assets/images/blog/role-of-artificial-intelligence-in-agriculture.jpg');
+  100%
+  {
+      background-image: url('https://sageuniversity.edu.in/assets/images/blog/role-of-artificial-intelligence-in-agriculture.jpg');
   }
+  
 }
 
-/* Login Page Styles */
 .login-container {
   display: flex;
   flex-direction: column;
@@ -99,7 +104,6 @@ body, html {
   cursor: pointer;
 }
 
-/* Main App Styles */
 .container {
   display: flex;
   height: 100vh;
@@ -135,13 +139,12 @@ main {
   background: rgba(255, 255, 255, 0.9);
 }
 
-/* Card Styles */
 .card {
   background: white;
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
 .plant-img {
@@ -149,7 +152,6 @@ main {
   border-radius: 10px;
 }
 
-/* Loader Styles */
 .loader {
   border: 6px solid #f3f3f3;
   border-top: 6px solid #555;
@@ -165,72 +167,3 @@ main {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-
-/* Result and Care Tips Sections */
-#results {
-  max-height: 500px; /* Set a max height for scrolling */
-  overflow-y: auto; /* Enable scrolling */
-  margin-top: 20px;
-}
-
-#careTips {
-  padding: 10px;
-  background-color: #f0f0f0;
-  border-radius: 10px;
-  margin-top: 20px;
-  font-size: 1.1em;
-  color: #333;
-}
-
-#analysisOutput {
-  margin-top: 20px;
-  font-size: 1.1em;
-  line-height: 1.6;
-}
-
-/* Styling for Analysis Section */
-#analysisOutput h3 {
-  font-size: 1.8em;
-  font-weight: bold;
-}
-
-#analysisOutput p {
-  margin: 10px 0;
-}
-
-#analysisOutput strong {
-  color: #2a7a3b;
-}
-
-/* Results and Care Tips Enhancements */
-#analysisOutput {
-  background: #fff;
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-#analysisOutput .plant-name {
-  font-size: 1.6rem;
-  font-weight: bold;
-  color: #2a7a3b;
-}
-
-#analysisOutput .scientific-name {
-  font-size: 1.2rem;
-  font-style: italic;
-  color: #555;
-}
-
-#analysisOutput .health-status {
-  font-weight: bold;
-  color: #e74c3c; /* Red for warning */
-}
-
-#analysisOutput .care-tips {
-  background-color: #f9f9f9;
-  padding: 10px;
-  border-radius: 10px;
-  margin-top: 20px;
-}
-

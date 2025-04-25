@@ -1,91 +1,80 @@
-// script.js
-
 function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  if (email && password) {
+  const user = document.getElementById("email").value;
+  const pass = document.getElementById("password").value;
+  if (user && pass) {
     document.getElementById("loginPage").style.display = "none";
     document.getElementById("appContainer").style.display = "flex";
   } else {
-    alert("Please enter both email and password.");
+    alert("Please enter email and password.");
   }
 }
 
 function analyzeImage() {
-  const fileInput = document.getElementById("imageInput");
   const loader = document.getElementById("loader");
-  const analysisOutput = document.getElementById("analysisOutput");
-  const careTips = document.getElementById("careTips");
-  const plantImage = document.getElementById("plantImage");
+  const output = document.getElementById("analysisOutput");
+  const tips = document.getElementById("careTips");
+  const input = document.getElementById("imageInput");
+  const plantImg = document.getElementById("plantImage");
 
-  if (!fileInput.files.length) {
-    alert("Please upload an image first.");
+  if (input.files.length === 0) {
+    output.innerText = "Please select an image.";
+    tips.innerText = "No image selected.";
     return;
   }
 
+  const file = input.files[0];
   const reader = new FileReader();
-  reader.onload = function (e) {
-    const imageBase64 = e.target.result.split(",")[1];
+
+  reader.onloadend = async function () {
+    const base64Image = reader.result.replace(/^data:image\/\w+;base64,/, '');
     loader.style.display = "block";
-    analysisOutput.innerHTML = "Analyzing...";
-    careTips.innerHTML = "";
-    plantImage.style.display = "none";
 
-    fetch("/identify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageBase64 }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        loader.style.display = "none";
-        const plant = data.identify || {};
-        const health = data.health || {};
-
-        plantImage.src = e.target.result;
-        plantImage.style.display = "block";
-
-        const name = plant.plant_name || "Unknown Plant";
-        const sciName = plant.scientific_name || "N/A";
-        const probability = (plant.probability * 100).toFixed(2);
-        const description = plant.details?.description || "No description available.";
-        const growth = plant.details?.growth_habit || "N/A";
-        const edible = plant.details?.edible ? "Yes" : "No";
-        const medicinal = plant.details?.medicinal ? "Yes" : "No";
-        const toxicity = plant.details?.toxicity || "N/A";
-
-        const issues = health.diseases?.length
-          ? health.diseases.map(d => `${d.name} (${(d.probability * 100).toFixed(1)}%)`).join(", ")
-          : "No disease detected";
-
-        analysisOutput.innerHTML = `
-          <strong>Plant Name:</strong> ${name}<br>
-          <strong>Scientific Name:</strong> ${sciName}<br>
-          <strong>Confidence:</strong> ${probability}%<br>
-          <strong>Description:</strong> ${description}<br>
-          <strong>Growth Habit:</strong> ${growth}<br>
-          <strong>Edible:</strong> ${edible}<br>
-          <strong>Medicinal Use:</strong> ${medicinal}<br>
-          <strong>Toxicity:</strong> ${toxicity}<br>
-          <strong>Potential Issues:</strong> ${issues}
-        `;
-
-        careTips.innerHTML = health.diseases?.length
-          ? `Tips: Monitor for symptoms of ${issues.split(",")[0]}. Maintain proper watering and light.`
-          : "Your plant looks healthy! Keep watering regularly and provide indirect sunlight.";
-      })
-      .catch((err) => {
-        loader.style.display = "none";
-        console.error("Error analyzing image:", err);
-        analysisOutput.innerHTML = "Failed to analyze image.";
+    try {
+      const res = await fetch("https://smartplantai.onrender.com/identify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ imageBase64: base64Image })
       });
+
+      const data = await res.json();
+      loader.style.display = "none";
+
+      const plant = data.identify?.plant_details || {};
+      const health = data.health || {};
+      const plantName = plant.common_names?.[0] || "Unknown Plant";
+      const scientific = plant.scientific_name || "N/A";
+      const description = plant.wiki_description?.value || "No description available.";
+      const probability = (data.identify?.probability * 100).toFixed(2);
+      const disease = health?.is_healthy_probability
+        ? health.is_healthy_probability > 0.6 ? "Healthy" : "Needs Attention"
+        : "Unknown";
+
+      output.innerHTML = `
+        <h3>${plantName}</h3>
+        <p><strong>Scientific Name:</strong> <em>${scientific}</em></p>
+        <p><strong>Confidence:</strong> ${probability}%</p>
+        <p><strong>Health Assessment:</strong> ${disease}</p>
+        <p><strong>Description:</strong> ${description}</p>
+      `;
+
+      tips.innerText = health.diseases?.length
+        ? `Potential issues: ${health.diseases.map(d => d.name).join(', ')}`
+        : "Water regularly. Avoid overexposure to sun. Fertilize monthly.";
+
+      plantImg.src = reader.result;
+      plantImg.style.display = "block";
+    } catch (err) {
+      loader.style.display = "none";
+      output.innerText = "Error during analysis.";
+      console.error(err);
+    }
   };
 
-  reader.readAsDataURL(fileInput.files[0]);
+  reader.readAsDataURL(file);
 }
 
 function toggleReminder() {
-  const reminderEnabled = document.getElementById("reminderToggle").checked;
-  alert(reminderEnabled ? "Watering reminders enabled!" : "Reminders disabled.");
+  alert("Watering reminders activated! You will be notified weekly (mock).");
 }

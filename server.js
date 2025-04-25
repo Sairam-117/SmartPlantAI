@@ -1,58 +1,44 @@
-const express = require('express');
-const multer = require('multer');
-const cors = require('cors');
-const axios = require('axios');
-const dotenv = require('dotenv');
-const fs = require('fs');
+require("dotenv").config();
+const express = require("express");
+const axios = require("axios");
+const cors = require("cors");
+const bodyParser = require("body-parser");
 
-dotenv.config();
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(express.static("public"));
 
-app.post('/analyze', upload.single('image'), async (req, res) => {
-  const imagePath = req.file.path;
-  const formData = new FormData();
-  formData.append('images', fs.createReadStream(imagePath));
-  formData.append('modifiers', ['crops_fast', 'similar_images']);
-  formData.append('plant_language', 'en');
-  formData.append('plant_details', [
-    'common_names',
-    'url',
-    'name_authority',
-    'wiki_description',
-    'taxonomy',
-    'synonyms',
-    'edible_parts',
-    'propagation_methods',
-    'medicinal',
-    'toxicity',
-    'growth_habit',
-    'watering',
-    'description'
-  ]);
-  formData.append('disease_details', [
-    'description',
-    'treatment',
-    'common_names'
-  ]);
+app.post("/identify", async (req, res) => {
+  const { imageBase64 } = req.body;
+  const API_KEY = process.env.PLANT_ID_API_KEY;
 
   try {
-    const response = await axios.post('https://api.plant.id/v2/identify', formData, {
-      headers: {
-        'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
-        'Api-Key': process.env.PLANT_ID_API_KEY
-      }
-    });
+    const [identifyRes, healthRes] = await Promise.all([
+      axios.post(
+        "https://api.plant.id/v2/identify",
+        { images: [imageBase64], similar_images: true },
+        { headers: { "Content-Type": "application/json", "Api-Key": API_KEY } }
+      ),
+      axios.post(
+        "https://api.plant.id/v2/health_assessment",
+        { images: [imageBase64] },
+        { headers: { "Content-Type": "application/json", "Api-Key": API_KEY } }
+      )
+    ]);
 
-    fs.unlinkSync(imagePath); // clean up
-    res.json(response.data);
-  } catch (error) {
-    console.error('API Error:', error.message);
-    res.status(500).json({ error: 'Failed to analyze plant' });
+    res.json({
+      identify: identifyRes.data?.suggestions?.[0] || {},
+      health: healthRes.data?.health_assessment || {}
+    });
+  } catch (err) {
+    console.error("❌ API error:", err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to analyze plant." });
   }
 });
 
-app.listen(3000, () => console.log('Server running on port 3000'));
+app.listen(PORT, () => {
+  console.log(`✅ Server running at http://localhost:${PORT}`);
+});
