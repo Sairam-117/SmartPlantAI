@@ -1,20 +1,20 @@
 // script.js
 
-// Toggle between login and app container
+// Login Functionality
 function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
   if (email && password) {
-    // Simulate successful login and transition to the main app
+    // Hide login page and show the main app
     document.getElementById("loginPage").style.display = "none";
     document.getElementById("appContainer").style.display = "flex";
   } else {
-    alert("Please fill in both fields.");
+    alert("Please enter both email and password.");
   }
 }
 
-// Image analysis functionality
+// Analyze Image Functionality
 async function analyzeImage() {
   const imageInput = document.getElementById("imageInput");
   const loader = document.getElementById("loader");
@@ -27,15 +27,14 @@ async function analyzeImage() {
     return;
   }
 
-  // Show loader while processing
   loader.style.display = "inline-block";
   analysisOutput.innerText = "Analyzing...";
-  
-  // Convert image to base64
+
   const file = imageInput.files[0];
   const reader = new FileReader();
+  
   reader.onloadend = async function () {
-    const imageBase64 = reader.result.split(",")[1]; // Extract base64 from Data URI
+    const imageBase64 = reader.result.split(",")[1];
 
     try {
       const response = await fetch("/identify", {
@@ -47,10 +46,8 @@ async function analyzeImage() {
       });
 
       const data = await response.json();
-
-      // Hide loader after analysis
       loader.style.display = "none";
-      
+
       if (data.identify && data.identify.plant_name) {
         imageOutput.style.display = "block";
         imageOutput.src = `data:image/jpeg;base64,${imageBase64}`;
@@ -62,15 +59,15 @@ async function analyzeImage() {
       }
     } catch (error) {
       loader.style.display = "none";
-      console.error("Error analyzing image:", error);
-      analysisOutput.innerHTML = "Error occurred while analyzing the plant.";
+      analysisOutput.innerHTML = "Error analyzing the plant.";
       careTips.innerHTML = "Please try again later.";
     }
   };
+
   reader.readAsDataURL(file);
 }
 
-// Toggle Watering Reminder setting
+// Watering Reminder Toggle
 function toggleReminder() {
   const reminderToggle = document.getElementById("reminderToggle");
   if (reminderToggle.checked) {
