@@ -1,85 +1,87 @@
 const express = require('express');
-const multer = require('multer');
 const cors = require('cors');
-const axios = require('axios');
-const dotenv = require('dotenv');
-const fs = require('fs');
+const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+const axios = require('axios');
+const FormData = require('form-data');
+require('dotenv').config();
 
-dotenv.config();
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const PORT = process.env.PORT || 3000;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public')); // Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
+// Set up Multer for image uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+const upload = multer({ storage: storage });
+
+// POST /analyze endpoint
 app.post('/analyze', upload.single('image'), async (req, res) => {
-  const imagePath = req.file.path;
-
   try {
-    const imageData = fs.readFileSync(imagePath, { encoding: 'base64' });
+    const imagePath = req.file.path;
 
-    const response = await axios.post('https://api.plant.id/v2/identify', {
-      images: [imageData],
-      modifiers: ['crops_fast', 'similar_images'],
-      plant_language: 'en',
-      plant_details: [
-        'common_names',
-        'url',
-        'name_authority',
-        'wiki_description',
-        'taxonomy',
-        'synonyms',
-        'edible_parts',
-        'propagation_methods',
-        'medicinal',
-        'toxicity',
-        'growth_habit',
-        'watering',
-        'description'
-      ],
-      disease_details: ['description', 'treatment', 'common_names']
-    }, {
+    // Read the image file
+    const imageData = fs.readFileSync(imagePath);
+
+    // Prepare the form data
+    const formData = new FormData();
+    formData.append('images', imageData, {
+      filename: req.file.filename,
+      contentType: req.file.mimetype
+    });
+
+    // Send the image to the Plant.id API
+    const response = await axios.post('https://api.plant.id/v2/identify', formData, {
       headers: {
-        'Content-Type': 'application/json',
+        ...formData.getHeaders(),
         'Api-Key': process.env.PLANT_ID_API_KEY
       }
     });
 
-    fs.unlinkSync(imagePath); // Clean up uploaded image
+    // Delete the uploaded image after processing
+    fs.unlinkSync(imagePath);
 
-    const result = response.data;
-    const suggestion = result?.suggestions?.[0] || {};
-    const plantDetails = suggestion?.plant_details || {};
-
-    const plantName = suggestion?.plant_name;
-    const scientificName = plantDetails?.scientific_name || 'N/A';
-
-    const displayName = plantName && plantName.toLowerCase() !== 'unknown plant'
-      ? plantName
-      : scientificName;
-
-    const responseData = {
-      name: displayName,
-      scientificName: scientificName,
-      probability: suggestion?.probability ? (suggestion.probability * 100).toFixed(2) : 'N/A',
-      description: plantDetails?.wiki_description?.value || 'No description available.',
-      growthHabit: plantDetails?.growth_habit || 'N/A',
-      edible: plantDetails?.edible_parts?.length ? 'Yes' : 'No',
-      medicinal: plantDetails?.medicinal ? 'Yes' : 'No',
-      toxicity: plantDetails?.toxicity || 'N/A',
-      issues: result?.health_assessment?.diseases?.length
-        ? result.health_assessment.diseases.map(i => `${i.name} (${(i.probability * 100).toFixed(1)}%)`).join(', ')
-        : 'No major issues detected'
-    };
-
-    res.json(responseData);
+    // Extract relevant data from the API response
+    const suggestions = response.data.suggestions;
+    if (suggestions && suggestions.length > 0) {
+      const bestMatch = suggestions[0];
+      const result = {
+        plantName: bestMatch.plant_name,
+        scientificName: bestMatch.scientific_name,
+        confidence: bestMatch.probability * 100,
+        description: bestMatch.description || 'N/A',
+        growthHabit: bestMatch.growth_habit || 'N/A',
+        edible: bestMatch.edible ? 'Yes' : 'No',
+        medicinalUse: bestMatch.medicinal ? 'Yes' : 'No',
+        toxicity: bestMatch.toxicity || 'N/A',
+        potentialIssues: bestMatch.potential_issues || 'N/A'
+      };
+      res.json(result);
+    } else {
+      res.status(404).json({ error: 'Plant not identified.' });
+    }
   } catch (error) {
-    console.error('API Error:', error.message);
-    res.status(500).json({ error: 'Failed to analyze plant' });
+    console.error('Error processing image:', error);
+    res.status(500).json({ error: 'Failed to analyze the image.' });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

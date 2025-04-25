@@ -23,30 +23,6 @@
     <p><strong>Toxicity:</strong> <span id="toxicity"></span></p>
     <p><strong>Potential Issues:</strong> <span id="issues"></span></p>
   </div>
-  <script>
-    document.getElementById('upload-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fileInput = document.getElementById('image-input');
-      const formData = new FormData();
-      formData.append('image', fileInput.files[0]);
-
-      const response = await fetch('/analyze', {
-        method: 'POST',
-        body: formData
-      });
-
-      const data = await response.json();
-
-      document.getElementById('plant-name').textContent = data.name;
-      document.getElementById('scientific-name').textContent = data.scientificName;
-      document.getElementById('confidence').textContent = data.probability;
-      document.getElementById('description').textContent = data.description;
-      document.getElementById('growth-habit').textContent = data.growthHabit;
-      document.getElementById('edible').textContent = data.edible;
-      document.getElementById('medicinal').textContent = data.medicinal;
-      document.getElementById('toxicity').textContent = data.toxicity;
-      document.getElementById('issues').textContent = data.issues;
-    });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>

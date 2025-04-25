@@ -1,31 +1,64 @@
-/* Reset some default styles */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-/* Body styling */
+/* General Styles */
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f7fa;
-  color: #333;
-  line-height: 1.6;
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  margin: 0;
   padding: 20px;
 }
 
-/* Header styling */
+/* Login Page Styles */
+.login-container {
+  max-width: 400px;
+  margin: 100px auto;
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.login-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-container input[type="text"],
+.login-container input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.login-container button {
+  width: 100%;
+  padding: 10px;
+  background-color: #27ae60;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.login-container button:hover {
+  background-color: #219150;
+}
+
+.error-message {
+  color: red;
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* Main Application Styles */
 h1 {
   text-align: center;
   margin-bottom: 30px;
   color: #2c3e50;
 }
 
-/* Form styling */
 form {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  text-align: center;
   margin-bottom: 30px;
 }
 
@@ -43,14 +76,12 @@ button {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
 button:hover {
   background-color: #219150;
 }
 
-/* Result container styling */
 #result {
   max-width: 800px;
   margin: 0 auto;
