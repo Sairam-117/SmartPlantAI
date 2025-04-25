@@ -8,12 +8,13 @@ function login() {
     alert("Please enter email and password.");
   }
 }
+
 function analyzeImage() {
-  const loader = document.getElementById('loader');
-  const output = document.getElementById('analysisOutput');
-  const tips = document.getElementById('careTips');
-  const input = document.getElementById('imageInput');
-  const plantImg = document.getElementById('plantImage');
+  const loader = document.getElementById("loader");
+  const output = document.getElementById("analysisOutput");
+  const tips = document.getElementById("careTips");
+  const input = document.getElementById("imageInput");
+  const plantImg = document.getElementById("plantImage");
 
   if (input.files.length === 0) {
     output.innerText = "Please select an image.";
@@ -21,29 +22,59 @@ function analyzeImage() {
     return;
   }
 
-  loader.style.display = "block";
+  const file = input.files[0];
+  const reader = new FileReader();
 
-  setTimeout(() => {
-    loader.style.display = "none";
+  reader.onloadend = async function () {
+    const base64Image = reader.result.replace(/^data:image\/\w+;base64,/, '');
+    loader.style.display = "block";
 
-    // Plant result display with scientific name and health
-    const plantName = "Fiddle Leaf Fig";
-    const scientificName = "Ficus lyrata";
-    const healthStatus = "Good";
+    try {
+      const res = await fetch("https://smartplantai.onrender.com/identify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ imageBase64: base64Image })
+      });
 
-    output.innerHTML = `
-      <h3>${plantName}</h3>
-      <p><strong>Scientific Name:</strong> <em>${scientificName}</em></p>
-      <p><strong>Health Assessment:</strong> ${healthStatus}</p>
-      <p><strong>Description:</strong> 
-      The Fiddle Leaf Fig is a striking houseplant known for its broad, waxy leaves. 
-      It's sensitive to overwatering, prefers bright indirect sunlight, and needs consistent humidity. 
-      It's excellent for air purification and interior decoration.
-      </p>
-    `;
+      const data = await res.json();
+      loader.style.display = "none";
 
-    tips.innerText = "Water once a week. Let the topsoil dry out before watering again. Keep in bright, indirect light.";
-    plantImg.src = "https://upload.wikimedia.org/wikipedia/commons/e/e5/Ficus_lyrata_2zz.jpg";
-    plantImg.style.display = "block";
-  }, 2000);
+      const plant = data.identify?.plant_details || {};
+      const health = data.health || {};
+      const plantName = plant.common_names?.[0] || "Unknown Plant";
+      const scientific = plant.scientific_name || "N/A";
+      const description = plant.wiki_description?.value || "No description available.";
+      const probability = (data.identify?.probability * 100).toFixed(2);
+      const disease = health?.is_healthy_probability
+        ? health.is_healthy_probability > 0.6 ? "Healthy" : "Needs Attention"
+        : "Unknown";
+
+      output.innerHTML = `
+        <h3>${plantName}</h3>
+        <p><strong>Scientific Name:</strong> <em>${scientific}</em></p>
+        <p><strong>Confidence:</strong> ${probability}%</p>
+        <p><strong>Health Assessment:</strong> ${disease}</p>
+        <p><strong>Description:</strong> ${description}</p>
+      `;
+
+      tips.innerText = health.diseases?.length
+        ? `Potential issues: ${health.diseases.map(d => d.name).join(', ')}`
+        : "Water regularly. Avoid overexposure to sun. Fertilize monthly.";
+
+      plantImg.src = reader.result;
+      plantImg.style.display = "block";
+    } catch (err) {
+      loader.style.display = "none";
+      output.innerText = "Error during analysis.";
+      console.error(err);
+    }
+  };
+
+  reader.readAsDataURL(file);
+}
+
+function toggleReminder() {
+  alert("Watering reminders activated! You will be notified weekly (mock).");
 }
