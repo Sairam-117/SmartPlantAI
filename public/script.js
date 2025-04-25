@@ -1,80 +1,81 @@
+// script.js
+
+// Toggle between login and app container
 function login() {
-  const user = document.getElementById("email").value;
-  const pass = document.getElementById("password").value;
-  if (user && pass) {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  if (email && password) {
+    // Simulate successful login and transition to the main app
     document.getElementById("loginPage").style.display = "none";
     document.getElementById("appContainer").style.display = "flex";
   } else {
-    alert("Please enter email and password.");
+    alert("Please fill in both fields.");
   }
 }
 
-function analyzeImage() {
+// Image analysis functionality
+async function analyzeImage() {
+  const imageInput = document.getElementById("imageInput");
   const loader = document.getElementById("loader");
-  const output = document.getElementById("analysisOutput");
-  const tips = document.getElementById("careTips");
-  const input = document.getElementById("imageInput");
-  const plantImg = document.getElementById("plantImage");
+  const imageOutput = document.getElementById("plantImage");
+  const analysisOutput = document.getElementById("analysisOutput");
+  const careTips = document.getElementById("careTips");
 
-  if (input.files.length === 0) {
-    output.innerText = "Please select an image.";
-    tips.innerText = "No image selected.";
+  if (!imageInput.files.length) {
+    alert("Please upload an image.");
     return;
   }
 
-  const file = input.files[0];
+  // Show loader while processing
+  loader.style.display = "inline-block";
+  analysisOutput.innerText = "Analyzing...";
+  
+  // Convert image to base64
+  const file = imageInput.files[0];
   const reader = new FileReader();
-
   reader.onloadend = async function () {
-    const base64Image = reader.result.replace(/^data:image\/\w+;base64,/, '');
-    loader.style.display = "block";
+    const imageBase64 = reader.result.split(",")[1]; // Extract base64 from Data URI
 
     try {
-      const res = await fetch("https://smartplantai.onrender.com/identify", {
+      const response = await fetch("/identify", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ imageBase64: base64Image })
+        body: JSON.stringify({ imageBase64 }),
       });
 
-      const data = await res.json();
+      const data = await response.json();
+
+      // Hide loader after analysis
       loader.style.display = "none";
-
-      const plant = data.identify?.plant_details || {};
-      const health = data.health || {};
-      const plantName = plant.common_names?.[0] || "Unknown Plant";
-      const scientific = plant.scientific_name || "N/A";
-      const description = plant.wiki_description?.value || "No description available.";
-      const probability = (data.identify?.probability * 100).toFixed(2);
-      const disease = health?.is_healthy_probability
-        ? health.is_healthy_probability > 0.6 ? "Healthy" : "Needs Attention"
-        : "Unknown";
-
-      output.innerHTML = `
-        <h3>${plantName}</h3>
-        <p><strong>Scientific Name:</strong> <em>${scientific}</em></p>
-        <p><strong>Confidence:</strong> ${probability}%</p>
-        <p><strong>Health Assessment:</strong> ${disease}</p>
-        <p><strong>Description:</strong> ${description}</p>
-      `;
-
-      tips.innerText = health.diseases?.length
-        ? `Potential issues: ${health.diseases.map(d => d.name).join(', ')}`
-        : "Water regularly. Avoid overexposure to sun. Fertilize monthly.";
-
-      plantImg.src = reader.result;
-      plantImg.style.display = "block";
-    } catch (err) {
+      
+      if (data.identify && data.identify.plant_name) {
+        imageOutput.style.display = "block";
+        imageOutput.src = `data:image/jpeg;base64,${imageBase64}`;
+        analysisOutput.innerHTML = `<strong>Plant:</strong> ${data.identify.plant_name}`;
+        careTips.innerHTML = `<strong>Health:</strong> ${data.health.health_assessment?.status || 'No health data available.'}`;
+      } else {
+        analysisOutput.innerHTML = "No plant detected. Try again.";
+        careTips.innerHTML = "Ensure the image is clear and focused on the plant.";
+      }
+    } catch (error) {
       loader.style.display = "none";
-      output.innerText = "Error during analysis.";
-      console.error(err);
+      console.error("Error analyzing image:", error);
+      analysisOutput.innerHTML = "Error occurred while analyzing the plant.";
+      careTips.innerHTML = "Please try again later.";
     }
   };
-
   reader.readAsDataURL(file);
 }
 
+// Toggle Watering Reminder setting
 function toggleReminder() {
-  alert("Watering reminders activated! You will be notified weekly (mock).");
+  const reminderToggle = document.getElementById("reminderToggle");
+  if (reminderToggle.checked) {
+    alert("Watering reminder enabled.");
+  } else {
+    alert("Watering reminder disabled.");
+  }
 }

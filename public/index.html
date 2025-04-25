@@ -36,8 +36,9 @@
           <li><a href="#upload">Upload</a></li>
           <li><a href="#results">Results</a></li>
           <li><a href="#tips">Care Tips</a></li>
+          <li><a href="#reminders">Watering Reminders</a></li>
           <li><a href="#settings">Settings</a></li>
-          <li><a href="#more">More</a></li>
+          <li><a href="#more">More Options</a></li>
         </ul>
       </nav>
     </aside>
@@ -62,11 +63,19 @@
         <h2>Care Tips</h2>
         <div id="careTips">Results will appear after analysis.</div>
       </section>
-      <section id="settings" class="card">
-        <h2>Settings</h2>
+      <section id="reminders" class="card">
+        <h2>Watering Reminders</h2>
+        <p>Enable reminders for plant care.</p>
         <label>
           Watering Reminder:
           <input type="checkbox" id="reminderToggle" onchange="toggleReminder()" />
+        </label>
+      </section>
+      <section id="settings" class="card">
+        <h2>Settings</h2>
+        <label>
+          Change Email:
+          <input type="email" id="newEmail" placeholder="Enter new email" />
         </label>
       </section>
       <section id="more" class="card">
