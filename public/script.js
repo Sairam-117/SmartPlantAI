@@ -43,7 +43,7 @@ function analyzeImage() {
 
       const plant = data.identify?.plant_details || {};
       const health = data.health || {};
-      const plantName = plant.common_names?.[0] || "Unknown Plant";
+      const plantName = plant.common_names?.[0] || "Plant";
       const scientific = plant.scientific_name || "N/A";
       const description = plant.wiki_description?.value || "No description available.";
       const probability = (data.identify?.probability * 100).toFixed(2);
