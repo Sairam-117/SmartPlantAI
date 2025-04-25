@@ -1,62 +1,58 @@
 const express = require('express');
-const axios = require('axios');
+const multer = require('multer');
 const cors = require('cors');
-const bodyParser = require('body-parser');
-require('dotenv').config();
+const axios = require('axios');
+const dotenv = require('dotenv');
+const fs = require('fs');
 
+dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 3000;
+const upload = multer({ dest: 'uploads/' });
 
 app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static('public')); // If serving frontend from the same server
+app.use(express.json());
 
-app.post('/analyze', async (req, res) => {
+app.post('/analyze', upload.single('image'), async (req, res) => {
+  const imagePath = req.file.path;
+  const formData = new FormData();
+  formData.append('images', fs.createReadStream(imagePath));
+  formData.append('modifiers', ['crops_fast', 'similar_images']);
+  formData.append('plant_language', 'en');
+  formData.append('plant_details', [
+    'common_names',
+    'url',
+    'name_authority',
+    'wiki_description',
+    'taxonomy',
+    'synonyms',
+    'edible_parts',
+    'propagation_methods',
+    'medicinal',
+    'toxicity',
+    'growth_habit',
+    'watering',
+    'description'
+  ]);
+  formData.append('disease_details', [
+    'description',
+    'treatment',
+    'common_names'
+  ]);
+
   try {
-    const { imageBase64 } = req.body;
-    const response = await axios.post('https://api.plant.id/v2/identify', {
-      images: [imageBase64],
-      modifiers: ["similar_images", "crops_fast", "health_all"],
-      plant_language: "en",
-      plant_details: [
-        "common_names", "url", "name_authority", "wiki_description",
-        "taxonomy", "synonyms", "edible_parts", "medicinal", "toxicity", "growth_rate",
-        "propagation_methods", "watering_general_benchmark", "growth_habit"
-      ]
-    }, {
+    const response = await axios.post('https://api.plant.id/v2/identify', formData, {
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
         'Api-Key': process.env.PLANT_ID_API_KEY
       }
     });
 
-    const result = response.data;
-    const suggestion = result?.suggestions?.[0] || {};
-    const plantDetails = suggestion?.plant_details || {};
-
-    const fallback = {
-      name: suggestion?.plant_name || "Fern-like Plant",
-      probability: suggestion?.probability ? (suggestion.probability * 100).toFixed(2) : "61.5",
-      scientificName: plantDetails.scientific_name || "Pteridophyta",
-      description: plantDetails?.wiki_description?.value || "A common leafy plant found in shaded or moist areas.",
-      growthHabit: plantDetails?.growth_habit || "Herb",
-      edible: plantDetails?.edible_parts?.length ? "Yes" : "No",
-      medicinal: plantDetails?.medicinal ? "Yes" : "No",
-      toxicity: plantDetails?.toxicity || "Non-toxic",
-      issues: result?.health_assessment?.diseases?.length
-        ? result.health_assessment.diseases.map(i => `${i.name} (${(i.probability * 100).toFixed(1)}%)`).join(', ')
-        : "No major issues detected",
-      imageUrl: result.images?.[0]?.url || null
-    };
-
-    res.json(fallback);
-
-  } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.status(500).json({ error: "Failed to analyze image." });
+    fs.unlinkSync(imagePath); // clean up
+    res.json(response.data);
+  } catch (error) {
+    console.error('API Error:', error.message);
+    res.status(500).json({ error: 'Failed to analyze plant' });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+app.listen(3000, () => console.log('Server running on port 3000'));
