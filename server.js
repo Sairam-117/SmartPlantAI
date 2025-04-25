@@ -1,3 +1,16 @@
+const express = require('express');
+const axios = require('axios');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.static('public')); // If serving frontend from the same server
+
 app.post('/analyze', async (req, res) => {
   try {
     const { imageBase64 } = req.body;
@@ -18,8 +31,6 @@ app.post('/analyze', async (req, res) => {
     });
 
     const result = response.data;
-
-    // Check if data is weak, fill mock fallback
     const suggestion = result?.suggestions?.[0] || {};
     const plantDetails = suggestion?.plant_details || {};
 
@@ -33,17 +44,19 @@ app.post('/analyze', async (req, res) => {
       medicinal: plantDetails?.medicinal ? "Yes" : "No",
       toxicity: plantDetails?.toxicity || "Non-toxic",
       issues: result?.health_assessment?.diseases?.length
-        ? result.health_assessment.diseases.map(i => `${i.name} (${i.probability * 100}%)`).join(', ')
-        : "No major issues detected"
+        ? result.health_assessment.diseases.map(i => `${i.name} (${(i.probability * 100).toFixed(1)}%)`).join(', ')
+        : "No major issues detected",
+      imageUrl: result.images?.[0]?.url || null
     };
 
-    res.json({
-      ...fallback,
-      imageUrl: result.images?.[0]?.url || null
-    });
+    res.json(fallback);
 
   } catch (err) {
     console.error(err.response?.data || err.message);
     res.status(500).json({ error: "Failed to analyze image." });
   }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
