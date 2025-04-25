@@ -19,20 +19,50 @@ app.post("/identify", async (req, res) => {
     const [identifyRes, healthRes] = await Promise.all([
       axios.post(
         "https://api.plant.id/v2/identify",
-        { images: [imageBase64], similar_images: true },
-        { headers: { "Content-Type": "application/json", "Api-Key": API_KEY } }
+        {
+          images: [imageBase64],
+          similar_images: true,
+          organs: ["leaf", "flower", "fruit", "bark"],
+          details: ["common_names", "url", "wiki_description", "taxonomy", "synonyms", "edibility", "growth_habit", "medicinal", "toxicity"],
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Api-Key": API_KEY
+          }
+        }
       ),
       axios.post(
         "https://api.plant.id/v2/health_assessment",
-        { images: [imageBase64] },
-        { headers: { "Content-Type": "application/json", "Api-Key": API_KEY } }
+        {
+          images: [imageBase64],
+          similar_images: false
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Api-Key": API_KEY
+          }
+        }
       )
     ]);
 
+    const suggestion = identifyRes.data?.suggestions?.[0] || {};
+    const health = healthRes.data?.health_assessment || {};
+
     res.json({
-      identify: identifyRes.data?.suggestions?.[0] || {},
-      health: healthRes.data?.health_assessment || {}
+      identify: {
+        plant_details: suggestion?.plant_details || {},
+        probability: suggestion?.probability || 0,
+        description: suggestion?.plant_details?.wiki_description || {},
+      },
+      health: {
+        is_healthy_probability: health?.is_healthy?.probability || null,
+        diseases: health?.diseases || [],
+        status: health?.is_healthy?.status || "Unknown"
+      }
     });
+
   } catch (err) {
     console.error("❌ API error:", err.response?.data || err.message);
     res.status(500).json({ error: "Failed to analyze plant." });
