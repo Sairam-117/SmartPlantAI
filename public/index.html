@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartPlant AI</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="background"></div>
+
+  <!-- LOGIN PAGE -->
+  <div class="login-container" id="loginPage">
+    <h1>SmartPlant AI</h1>
+    <div class="login-box">
+      <h2>Login</h2>
+      <input type="email" placeholder="E-mail" id="email" />
+      <input type="password" placeholder="Password" id="password" />
+      <div class="login-options">
+        <label><input type="checkbox"> Remember Me</label>
+        <a href="#">Forgot Password?</a>
+      </div>
+      <button onclick="login()">Login</button>
+      <p>Don't have an account? <a href="#">Register</a></p>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div class="container" id="appContainer" style="display: none;">
+    <aside class="sidebar">
+      <img src="https://cdn.prod.website-files.com/62a66aa220a55155318447ce/65904e978052df6b35e7da0a_glowing%20plants.jpg" alt="SmartPlant AI Logo" height="100" width="200"/>
+      <h1>SmartPlant AI</h1>
+      <nav>
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#upload">Upload</a></li>
+          <li><a href="#results">Results</a></li>
+          <li><a href="#tips">Care Tips</a></li>
+          <li><a href="#settings">Settings</a></li>
+          <li><a href="#more">More</a></li>
+        </ul>
+      </nav>
+    </aside>
+    <main>
+      <section id="home" class="card">
+        <h2>Welcome to SmartPlant AI</h2>
+        <p class="slogan">"Nurture nature with a touch of AI brilliance."</p>
+        <p>Analyze your plants, get care tips, and keep them thriving using AI.</p>
+      </section>
+      <section id="upload" class="card">
+        <h2>Upload Your Plant Image</h2>
+        <input type="file" id="imageInput" accept="image/*" />
+        <button onclick="analyzeImage()">Analyze</button>
+        <div class="loader" id="loader"></div>
+      </section>
+      <section id="results" class="card">
+        <h2>Analysis Result</h2>
+        <img id="plantImage" class="plant-img" src="" alt="" style="display:none;" />
+        <div id="analysisOutput">Upload an image to see results.</div>
+      </section>
+      <section id="tips" class="card">
+        <h2>Care Tips</h2>
+        <div id="careTips">Results will appear after analysis.</div>
+      </section>
+      <section id="settings" class="card">
+        <h2>Settings</h2>
+        <label>
+          Watering Reminder:
+          <input type="checkbox" id="reminderToggle" onchange="toggleReminder()" />
+        </label>
+      </section>
+      <section id="more" class="card">
+        <h2>More Options</h2>
+        <p>Explore diagnostics, watering reminders, and plant libraries.</p>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
